@@ -18,4 +18,6 @@
 
 @interface MessageComposeTableViewController : UITableViewController
 
+- (NSString *)sanitizePhoneNumberString:(NSString *)phoneNumber;
+
 @end
