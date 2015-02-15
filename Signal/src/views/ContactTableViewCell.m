@@ -24,18 +24,14 @@
     return NSStringFromClass(self.class);
 }
 
-
 - (void)configureWithContact:(Contact *)contact {
-    _callButton.hidden =  !contact.isRedPhoneContact;
-    if(!contact.isTextSecureContact) {
-        self.selectionStyle = UITableViewCellSelectionStyleNone;
-    }
+    _callButton.hidden = !contact.isRedPhoneContact;
     _associatedContact = contact;
-    
     _nameLabel.attributedText = [self attributedStringForContact:contact];
-    if (!contact.isTextSecureContact) {
-        _nameLabel.textColor = [UIColor grayColor];
-    }
+}
+
+- (void)setSelectable {
+    self.selectionStyle = UITableViewCellSelectionStyleDefault;
 }
 
 - (NSAttributedString *)attributedStringForContact:(Contact *)contact {
