@@ -298,7 +298,7 @@
 
 #pragma mark - Send Normal Text to Unknown Contact
 
-- (void)sendText:(NSString*)number withMessage:(NSString*)confirmMessage {
+- (UIAlertController*)sendText:(NSString*)number withMessage:(NSString*)confirmMessage {
     UIAlertController *alertController = [UIAlertController
                                           alertControllerWithTitle:@"Confirm"
                                                            message:confirmMessage
@@ -335,32 +335,44 @@
     
     [alertController addAction:cancelAction];
     [alertController addAction:okAction];
-    sendTextButton.hidden = YES;
-    self.searchController.searchBar.text = @"";
-
-    [self.parentViewController dismissViewControllerAnimated:NO completion:^{
-        [self presentViewController:alertController animated:YES completion:[UIUtil modalCompletionBlock]];
-    }];
+    
+    return alertController;
 }
 
 - (void)sendTextToNumber {
-    NSString *confirmMessage = @"Invite a friend via insecure SMS?";
+    NSString *confirmMessage;
+    sendTextButton.hidden = YES;
+    self.searchController.searchBar.text = @"";
     if([currentSearchTerm length]>0) {
         confirmMessage =  @"Would you like to invite the following number to Signal: ";
         confirmMessage = [confirmMessage stringByAppendingString:currentSearchTerm];
         confirmMessage = [confirmMessage stringByAppendingString:@"?"];
     }
-    [self sendText:currentSearchTerm withMessage:confirmMessage];
+    UIAlertController *alertController = [self sendText:currentSearchTerm withMessage:confirmMessage];
+    
+    [self.parentViewController dismissViewControllerAnimated:NO completion:^{
+        [self presentViewController:alertController animated:YES completion:[UIUtil modalCompletionBlock]];
+    }];
 }
 
 - (void)sendTextToContact:(Contact*)contact {
-    NSString *confirmMessage = @"Invite a friend via insecure SMS?";
-    if([currentSearchTerm length]>0) {
-        confirmMessage =  @"Would you like to invite the following friend to Signal: ";
-        confirmMessage = [contact fullName];
-        confirmMessage = [confirmMessage stringByAppendingString:@"?"];
-    }
-    [self sendText:[contact allPhoneNumbers] withMessage:confirmMessage];
+    NSString *confirmMessage = @"Would you like to invite the following friend to Signal: ";
+    confirmMessage = [confirmMessage stringByAppendingString:[contact fullName]];
+    confirmMessage = [confirmMessage stringByAppendingString:@"?"];
+    UIAlertController *alertController = [self sendText:[contact allPhoneNumbers] withMessage:confirmMessage];
+    
+    [self presentViewController:alertController animated:YES completion:^{
+        [UIUtil modalCompletionBlock];
+        NSLog(@"what the actual fuck");
+    }];
+    
+//    [self.parentViewController dismissViewControllerAnimated:NO completion:^{
+//        NSLog(@"why");
+//        [self presentViewController:alertController animated:YES completion:^{
+//            NSLog(@"fuck you");
+//            [UIUtil modalCompletionBlock];
+//        }];
+//    }];
 }
 
 #pragma mark - SMS Composer Delegate
@@ -449,13 +461,13 @@
     Contact *person = [self contactForIndexPath:indexPath];
     if (!person.isTextSecureContact) {
         [self sendTextToContact:person];
+    } else {
+        NSString *identifier = [[[self contactForIndexPath:indexPath] textSecureIdentifiers] firstObject];
+        
+        [self dismissViewControllerAnimated:NO completion:^(){
+            [Environment messageIdentifier:identifier];
+        }];
     }
-    
-    NSString *identifier = [[[self contactForIndexPath:indexPath] textSecureIdentifiers] firstObject];
-    
-    [self dismissViewControllerAnimated:NO completion:^(){
-        [Environment messageIdentifier:identifier];
-    }];
 }
     
 
